@@ -1,0 +1,4 @@
+geometry_msgs/PoseWithCovarianceStamped startPose
+geometry_msgs/PoseStamped goalPose
+---
+std_msgs/Int32 result

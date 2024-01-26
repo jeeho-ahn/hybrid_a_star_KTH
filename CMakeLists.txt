@@ -19,7 +19,16 @@ find_package(catkin REQUIRED COMPONENTS
     rospy
     std_msgs
     tf
+    geometry_msgs
     )
+
+add_service_files(DIRECTORY srv)
+
+generate_messages(
+  DEPENDENCIES
+  geometry_msgs
+  std_msgs
+)
 
 set(SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/algorithm.cpp
@@ -57,7 +66,7 @@ set(HEADERS
 add_library(HYAS ${SOURCES} ${HEADERS})
 
 ## Declare a catkin package
-catkin_package()
+catkin_package(CATKIN_DEPENDS rospy std_msgs geometry_msgs)
 
 ## OPEN MOTION PLANNING LIBRARY
 find_package(ompl REQUIRED)
@@ -86,3 +95,9 @@ install(TARGETS ${PROJECT_NAME} tf_broadcaster
 install(DIRECTORY launch/
     DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
     )
+
+## Mark executable scripts (Python etc.) for installation
+catkin_install_python(PROGRAMS
+scripts/test_plan_client.py  # Replace with the actual name of your Python script
+DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)

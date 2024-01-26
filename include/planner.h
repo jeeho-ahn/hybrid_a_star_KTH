@@ -9,6 +9,7 @@
 #include <tf/transform_listener.h>
 #include <nav_msgs/OccupancyGrid.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
+#include <hybrid_astar/planReqSrv.h>
 
 #include "constants.h"
 #include "helper.h"
@@ -49,18 +50,23 @@ class Planner {
      \brief setStart
      \param start the start pose
   */
-  void setStart(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& start);
+  void setStart_cb(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& start);
+  void setStart(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& start, bool run_plan = true);
 
   /*!
      \brief setGoal
      \param goal the goal pose
   */
-  void setGoal(const geometry_msgs::PoseStamped::ConstPtr& goal);
+  void setGoal_cb(const geometry_msgs::PoseStamped::ConstPtr& goal);
+  void setGoal(const geometry_msgs::PoseStamped::ConstPtr& goal, bool run_plan = true);
 
   /*!
      \brief The central function entry point making the necessary preparations to start the planning.
   */
   void plan();
+
+  /// The plan request handler
+  bool plan_req_handler(hybrid_astar::planReqSrvRequest &req, hybrid_astar::planReqSrvResponse &res);
 
  private:
   /// The node handle
@@ -77,6 +83,11 @@ class Planner {
   tf::TransformListener listener;
   /// A transform for moving start positions
   tf::StampedTransform transform;
+
+  /// A plan request service
+  ros::ServiceServer srvPlanReqService;
+
+
   /// The path produced by the hybrid A* algorithm
   Path path;
   /// The smoother used for optimizing the path

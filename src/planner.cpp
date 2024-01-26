@@ -24,8 +24,11 @@ Planner::Planner() {
     subMap = n.subscribe("/occ_map", 1, &Planner::setMap, this);
   }
 
-  subGoal = n.subscribe("/move_base_simple/goal", 1, &Planner::setGoal, this);
-  subStart = n.subscribe("/initialpose", 1, &Planner::setStart, this);
+  subGoal = n.subscribe("/move_base_simple/goal", 1, &Planner::setGoal_cb, this);
+  subStart = n.subscribe("/initialpose", 1, &Planner::setStart_cb, this);
+
+  //plan request service
+  srvPlanReqService = n.advertiseService("/plan_req_test", &Planner::plan_req_handler, this);
 };
 
 //###################################################
@@ -97,7 +100,35 @@ void Planner::setMap(const nav_msgs::OccupancyGrid::Ptr map) {
 //###################################################
 //                                   INITIALIZE START
 //###################################################
-void Planner::setStart(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& initial) {
+
+void Planner::setStart(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& initial, bool run_plan) {
+  float x = initial->pose.pose.position.x / Constants::cellSize;
+  float y = initial->pose.pose.position.y / Constants::cellSize;
+  float t = tf::getYaw(initial->pose.pose.orientation);
+  // publish the start without covariance for rviz
+  geometry_msgs::PoseStamped startN;
+  startN.pose.position = initial->pose.pose.position;
+  startN.pose.orientation = initial->pose.pose.orientation;
+  startN.header.frame_id = "map";
+  startN.header.stamp = ros::Time::now();
+
+  std::cout << "I am seeing a new start x:" << x << " y:" << y << " t:" << Helper::toDeg(t) << std::endl;
+
+  if (grid->info.height >= y && y >= 0 && grid->info.width >= x && x >= 0) {
+    validStart = true;
+    start = *initial;
+
+    if (Constants::manual && run_plan) { plan();}
+
+    // publish start for RViz
+    pubStart.publish(startN);
+  } else {
+    std::cout << "invalid start x:" << x << " y:" << y << " t:" << Helper::toDeg(t) << std::endl;
+  }
+}
+
+
+void Planner::setStart_cb(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& initial) {
   float x = initial->pose.pose.position.x / Constants::cellSize;
   float y = initial->pose.pose.position.y / Constants::cellSize;
   float t = tf::getYaw(initial->pose.pose.orientation);
@@ -126,7 +157,7 @@ void Planner::setStart(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr&
 //###################################################
 //                                    INITIALIZE GOAL
 //###################################################
-void Planner::setGoal(const geometry_msgs::PoseStamped::ConstPtr& end) {
+void Planner::setGoal_cb(const geometry_msgs::PoseStamped::ConstPtr& end) {
   // retrieving goal position
   float x = end->pose.position.x / Constants::cellSize;
   float y = end->pose.position.y / Constants::cellSize;
@@ -139,6 +170,25 @@ void Planner::setGoal(const geometry_msgs::PoseStamped::ConstPtr& end) {
     goal = *end;
 
     if (Constants::manual) { plan();}
+
+  } else {
+    std::cout << "invalid goal x:" << x << " y:" << y << " t:" << Helper::toDeg(t) << std::endl;
+  }
+}
+
+void Planner::setGoal(const geometry_msgs::PoseStamped::ConstPtr& end, bool run_plan) {
+  // retrieving goal position
+  float x = end->pose.position.x / Constants::cellSize;
+  float y = end->pose.position.y / Constants::cellSize;
+  float t = tf::getYaw(end->pose.orientation);
+
+  std::cout << "I am seeing a new goal x:" << x << " y:" << y << " t:" << Helper::toDeg(t) << std::endl;
+
+  if (grid->info.height >= y && y >= 0 && grid->info.width >= x && x >= 0) {
+    validGoal = true;
+    goal = *end;
+
+    if (Constants::manual && run_plan) { plan();}
 
   } else {
     std::cout << "invalid goal x:" << x << " y:" << y << " t:" << Helper::toDeg(t) << std::endl;
@@ -230,4 +280,18 @@ void Planner::plan() {
   } else {
     std::cout << "missing goal or start" << std::endl;
   }
+}
+
+//###################################################
+//                                      PLAN REQUEST
+//###################################################
+bool Planner::plan_req_handler(hybrid_astar::planReqSrvRequest &req, hybrid_astar::planReqSrvResponse &res)
+{
+  // add start pose
+  auto startPosePtr = boost::make_shared<geometry_msgs::PoseWithCovarianceStamped>(req.startPose);
+  auto goalPosePtr = boost::make_shared<geometry_msgs::PoseStamped>(req.goalPose);
+  this->setStart(startPosePtr);
+  this->setGoal(goalPosePtr);
+
+  return true;
 }
