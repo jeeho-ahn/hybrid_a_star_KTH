@@ -9,7 +9,11 @@
 #include <tf/transform_listener.h>
 #include <nav_msgs/OccupancyGrid.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
+//services
 #include <hybrid_astar/planReqSrv.h>
+#include <hybrid_astar/cubeReqSrv.h>
+#include <std_srvs/Trigger.h>
+#include <vector>
 
 #include "constants.h"
 #include "helper.h"
@@ -21,6 +25,7 @@
 #include "smoother.h"
 #include "visualize.h"
 #include "lookup.h"
+#include <cube_block.h>
 
 namespace HybridAStar {
 /*!
@@ -63,10 +68,14 @@ class Planner {
   /*!
      \brief The central function entry point making the necessary preparations to start the planning.
   */
-  void plan();
+  size_t plan();
 
   /// The plan request handler
   bool plan_req_handler(hybrid_astar::planReqSrvRequest &req, hybrid_astar::planReqSrvResponse &res);
+  /// The cube request handler
+  bool cube_req_handler(hybrid_astar::cubeReqSrvRequest &req, hybrid_astar::cubeReqSrvResponse &res);
+  /// The cube cost request handler
+  bool push_cost_req_handler(std_srvs::TriggerRequest &req, std_srvs::TriggerResponse &res);
 
  private:
   /// The node handle
@@ -86,7 +95,10 @@ class Planner {
 
   /// A plan request service
   ros::ServiceServer srvPlanReqService;
-
+  /// A service for adding a cube
+  ros::ServiceServer srvCubeReqService;
+  /// The cube push cost est. req
+  ros::ServiceServer srvPushCostReqService;
 
   /// The path produced by the hybrid A* algorithm
   Path path;
@@ -114,6 +126,10 @@ class Planner {
   Constants::config collisionLookup[Constants::headings * Constants::positions];
   /// A lookup of analytical solutions (Dubin's paths)
   float* dubinsLookup = new float [Constants::headings * Constants::headings * Constants::dubinsWidth * Constants::dubinsWidth];
+
+  /// A list of cube blocks
+  std::vector<jeeho::cube> cube_list = std::vector<jeeho::cube>();
+
 };
 }
 #endif // PLANNER_H

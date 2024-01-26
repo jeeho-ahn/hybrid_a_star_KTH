@@ -68,19 +68,19 @@ if __name__ == '__main__':
 
     # Example start and goal poses with specific values
     start_pose = PoseWithCovarianceStamped()
-    start_pose.pose.pose.position.x = 21.1918
-    start_pose.pose.pose.position.y = 20.4737
+    start_pose.pose.pose.position.x = 10.5
+    start_pose.pose.pose.position.y = 8.58
     #start_pose.pose.pose.orientation.z = 0.927
     #start_pose.pose.pose.orientation = normalize_q(start_pose.pose.pose.orientation)
-    start_pose.pose.pose.orientation = euler_deg_to_quaternion2d(107.928)
+    start_pose.pose.pose.orientation = euler_deg_to_quaternion2d(123.476)
     # Add other pose information if needed
 
     goal_pose = PoseStamped()
-    goal_pose.pose.position.x = 27.359
-    goal_pose.pose.position.y = 72.1764
+    goal_pose.pose.position.x = 8.22
+    goal_pose.pose.position.y = 35.9
     #goal_pose.pose.orientation.z = 0.623
     #goal_pose.pose.orientation = normalize_q(goal_pose.pose.orientation)
-    goal_pose.pose.orientation = euler_deg_to_quaternion2d(351.617)
+    goal_pose.pose.orientation = euler_deg_to_quaternion2d(173.047)
 
     result = service_client(start_pose, goal_pose)
 

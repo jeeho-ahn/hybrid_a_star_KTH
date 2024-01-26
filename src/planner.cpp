@@ -29,6 +29,10 @@ Planner::Planner() {
 
   //plan request service
   srvPlanReqService = n.advertiseService("/plan_req_test", &Planner::plan_req_handler, this);
+  //add cube service
+  srvCubeReqService = n.advertiseService("/cube_req", &Planner::cube_req_handler, this);
+  //Push cost service
+  srvPushCostReqService = n.advertiseService("/cube_pickup_cost_req", &Planner::push_cost_req_handler, this);
 };
 
 //###################################################
@@ -112,7 +116,7 @@ void Planner::setStart(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr&
   startN.header.frame_id = "map";
   startN.header.stamp = ros::Time::now();
 
-  std::cout << "I am seeing a new start x:" << x << " y:" << y << " t:" << Helper::toDeg(t) << std::endl;
+  std::cout << "I am seeing a new start x:" << initial->pose.pose.position.x << " y:" << initial->pose.pose.position.y << " t:" << Helper::toDeg(t) << std::endl;
 
   if (grid->info.height >= y && y >= 0 && grid->info.width >= x && x >= 0) {
     validStart = true;
@@ -139,7 +143,7 @@ void Planner::setStart_cb(const geometry_msgs::PoseWithCovarianceStamped::ConstP
   startN.header.frame_id = "map";
   startN.header.stamp = ros::Time::now();
 
-  std::cout << "I am seeing a new start x:" << x << " y:" << y << " t:" << Helper::toDeg(t) << std::endl;
+  std::cout << "I am seeing a new start x:" << initial->pose.pose.position.x << " y:" << initial->pose.pose.position.y << " t:" << Helper::toDeg(t) << std::endl;
 
   if (grid->info.height >= y && y >= 0 && grid->info.width >= x && x >= 0) {
     validStart = true;
@@ -163,7 +167,7 @@ void Planner::setGoal_cb(const geometry_msgs::PoseStamped::ConstPtr& end) {
   float y = end->pose.position.y / Constants::cellSize;
   float t = tf::getYaw(end->pose.orientation);
 
-  std::cout << "I am seeing a new goal x:" << x << " y:" << y << " t:" << Helper::toDeg(t) << std::endl;
+  std::cout << "I am seeing a new goal x:" << end->pose.position.x << " y:" << end->pose.position.y << " t:" << Helper::toDeg(t) << std::endl;
 
   if (grid->info.height >= y && y >= 0 && grid->info.width >= x && x >= 0) {
     validGoal = true;
@@ -182,7 +186,7 @@ void Planner::setGoal(const geometry_msgs::PoseStamped::ConstPtr& end, bool run_
   float y = end->pose.position.y / Constants::cellSize;
   float t = tf::getYaw(end->pose.orientation);
 
-  std::cout << "I am seeing a new goal x:" << x << " y:" << y << " t:" << Helper::toDeg(t) << std::endl;
+  std::cout << "I am seeing a new goal x:" << end->pose.position.x << " y:" << end->pose.position.y << " t:" << Helper::toDeg(t) << std::endl;
 
   if (grid->info.height >= y && y >= 0 && grid->info.width >= x && x >= 0) {
     validGoal = true;
@@ -198,7 +202,7 @@ void Planner::setGoal(const geometry_msgs::PoseStamped::ConstPtr& end, bool run_
 //###################################################
 //                                      PLAN THE PATH
 //###################################################
-void Planner::plan() {
+size_t Planner::plan() {
   // if a start as well as goal are defined go ahead and plan
   if (validStart && validGoal) {
 
@@ -277,8 +281,12 @@ void Planner::plan() {
     delete [] nodes3D;
     delete [] nodes2D;
 
+    //return length of path
+    return path.getPathLength();
+
   } else {
     std::cout << "missing goal or start" << std::endl;
+    return 0;
   }
 }
 
@@ -290,8 +298,68 @@ bool Planner::plan_req_handler(hybrid_astar::planReqSrvRequest &req, hybrid_asta
   // add start pose
   auto startPosePtr = boost::make_shared<geometry_msgs::PoseWithCovarianceStamped>(req.startPose);
   auto goalPosePtr = boost::make_shared<geometry_msgs::PoseStamped>(req.goalPose);
-  this->setStart(startPosePtr);
+  this->setStart(startPosePtr,false);
   this->setGoal(goalPosePtr);
+
+  return true;
+}
+
+
+
+bool Planner::cube_req_handler(hybrid_astar::cubeReqSrvRequest &req, hybrid_astar::cubeReqSrvResponse &res)
+{
+  std::cout << "Cube Request" << std::endl;
+  jeeho::cube temp_cube(req.pose_in);
+  if(req.cmd.data == "add")
+  {
+    cube_list.push_back(temp_cube);
+  }
+  else if(req.cmd.data == "replace")
+  {
+    cube_list.clear();
+    cube_list.push_back(temp_cube);
+  }
+  else {
+    //invalid cmd
+    return false;
+  }
+  return true;
+}
+
+bool Planner::push_cost_req_handler(std_srvs::TriggerRequest &req, std_srvs::TriggerResponse &res)
+{
+  //first cube for now
+  if(cube_list.size()>0)
+  {
+    //force valid
+    validGoal = true;
+    //get first cost
+    int pivot_ind = 0;
+    geometry_msgs::PoseStamped pivot_pose;
+    //goal orientation candidates
+    auto pose_cands = cube_list[0].pose_candidates();
+    pivot_pose = pose_cands->at(pivot_ind);
+    goal = pivot_pose;
+    auto pivot_cost =plan();
+
+    for (size_t i=1;i<4;i++) {
+      pivot_pose = pose_cands->at(i);
+      goal = pivot_pose;
+      size_t temp_cost = plan();
+      if(temp_cost<pivot_cost){
+        pivot_cost = temp_cost;
+        pivot_ind = i;
+      }
+    }
+
+    pivot_pose = pose_cands->at(pivot_ind);
+    goal = pivot_pose;
+    plan();
+
+  }
+  else{
+    //cube list is empty
+  }
 
   return true;
 }

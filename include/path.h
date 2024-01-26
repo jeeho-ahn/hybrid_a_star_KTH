@@ -87,6 +87,8 @@ class Path {
   void publishPathNodes() { pubPathNodes.publish(pathNodes); }
   /// Publishes the vehicle along the path
   void publishPathVehicles() { pubPathVehicles.publish(pathVehicles); }
+  //get path length
+  size_t getPathLength();
 
  private:
   /// A handle to the ROS node

@@ -1,0 +1,4 @@
+std_msgs/String cmd
+geometry_msgs/Pose pose_in
+---
+std_msgs/Int32 result

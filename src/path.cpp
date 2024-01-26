@@ -139,3 +139,8 @@ void Path::addVehicle(const Node3D& node, int i) {
   pathVehicle.pose.orientation = tf::createQuaternionMsgFromYaw(node.getT());
   pathVehicles.markers.push_back(pathVehicle);
 }
+
+size_t Path::getPathLength()
+{
+  return path.poses.size();
+}
