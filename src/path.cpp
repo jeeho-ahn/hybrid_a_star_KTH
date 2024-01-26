@@ -140,7 +140,20 @@ void Path::addVehicle(const Node3D& node, int i) {
   pathVehicles.markers.push_back(pathVehicle);
 }
 
-size_t Path::getPathLength()
+float Path::getPathLength()
 {
-  return path.poses.size();
+  float p_len = 0;
+  
+  for(size_t i=0; i<path.poses.size()-1; i++)
+  {
+    auto p1 = path.poses[i].pose.position;
+    auto p2 = path.poses[i+1].pose.position;
+    geometry_msgs::Point disp;
+    disp.x = std::fabs(p2.x-p1.x);
+    disp.y = std::fabs(p2.y-p1.y);
+    p_len += std::sqrt(disp.x*disp.x + disp.y*disp.y);
+  }
+
+  //return path.poses.size();
+  return p_len;
 }

@@ -68,7 +68,7 @@ class Planner {
   /*!
      \brief The central function entry point making the necessary preparations to start the planning.
   */
-  size_t plan();
+  float plan();
 
   /// The plan request handler
   bool plan_req_handler(hybrid_astar::planReqSrvRequest &req, hybrid_astar::planReqSrvResponse &res);

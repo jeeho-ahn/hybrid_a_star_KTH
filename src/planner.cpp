@@ -202,7 +202,7 @@ void Planner::setGoal(const geometry_msgs::PoseStamped::ConstPtr& end, bool run_
 //###################################################
 //                                      PLAN THE PATH
 //###################################################
-size_t Planner::plan() {
+float Planner::plan() {
   // if a start as well as goal are defined go ahead and plan
   if (validStart && validGoal) {
 
@@ -282,7 +282,7 @@ size_t Planner::plan() {
     delete [] nodes2D;
 
     //return length of path
-    return path.getPathLength();
+    return smoothedPath.getPathLength();
 
   } else {
     std::cout << "missing goal or start" << std::endl;
@@ -340,12 +340,14 @@ bool Planner::push_cost_req_handler(std_srvs::TriggerRequest &req, std_srvs::Tri
     auto pose_cands = cube_list[0].pose_candidates();
     pivot_pose = pose_cands->at(pivot_ind);
     goal = pivot_pose;
-    auto pivot_cost =plan();
+    auto pivot_cost = plan();
+    std::cout << "Cost: " << pivot_cost << std::endl;
 
     for (size_t i=1;i<4;i++) {
       pivot_pose = pose_cands->at(i);
       goal = pivot_pose;
-      size_t temp_cost = plan();
+      float temp_cost = plan();
+      std::cout << "Cost: " << temp_cost << std::endl;
       if(temp_cost<pivot_cost){
         pivot_cost = temp_cost;
         pivot_ind = i;
@@ -354,7 +356,8 @@ bool Planner::push_cost_req_handler(std_srvs::TriggerRequest &req, std_srvs::Tri
 
     pivot_pose = pose_cands->at(pivot_ind);
     goal = pivot_pose;
-    plan();
+    auto final_cost = plan();
+    std::cout << "Chosen Cost: " << final_cost << std::endl;
 
   }
   else{

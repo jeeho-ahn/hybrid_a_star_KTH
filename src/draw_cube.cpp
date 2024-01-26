@@ -13,7 +13,6 @@ ros::ServiceClient* srvPushCostReq_ptr = nullptr;
 
 void pickPointCallback(const geometry_msgs::PointStamped::ConstPtr& msg)
 {
-    std::cout << "here" << std::endl;
     // Process the pick point data
     double x = msg->point.x;
     double y = msg->point.y;
