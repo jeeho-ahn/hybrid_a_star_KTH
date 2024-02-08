@@ -60,7 +60,7 @@ def service_client(start_pose, goal_pose):
         return -1
 
 if __name__ == '__main__':
-    rospy.init_node('your_node_name')  # Replace 'your_node_name' with the desired name for your node
+    rospy.init_node('test_plan_client')  # Replace 'your_node_name' with the desired name for your node
 
     # Example start and goal poses
     start_pose = PoseWithCovarianceStamped()
@@ -68,19 +68,19 @@ if __name__ == '__main__':
 
     # Example start and goal poses with specific values
     start_pose = PoseWithCovarianceStamped()
-    start_pose.pose.pose.position.x = 10.5
-    start_pose.pose.pose.position.y = 8.58
+    start_pose.pose.pose.position.x = 0
+    start_pose.pose.pose.position.y = 0
     #start_pose.pose.pose.orientation.z = 0.927
     #start_pose.pose.pose.orientation = normalize_q(start_pose.pose.pose.orientation)
-    start_pose.pose.pose.orientation = euler_deg_to_quaternion2d(123.476)
+    start_pose.pose.pose.orientation = euler_deg_to_quaternion2d(90)
     # Add other pose information if needed
 
     goal_pose = PoseStamped()
-    goal_pose.pose.position.x = 8.22
-    goal_pose.pose.position.y = 35.9
+    goal_pose.pose.position.x = 1.5
+    goal_pose.pose.position.y = 3
     #goal_pose.pose.orientation.z = 0.623
     #goal_pose.pose.orientation = normalize_q(goal_pose.pose.orientation)
-    goal_pose.pose.orientation = euler_deg_to_quaternion2d(173.047)
+    goal_pose.pose.orientation = euler_deg_to_quaternion2d(0)
 
     result = service_client(start_pose, goal_pose)
 

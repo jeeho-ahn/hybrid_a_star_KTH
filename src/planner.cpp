@@ -203,6 +203,11 @@ void Planner::setGoal(const geometry_msgs::PoseStamped::ConstPtr& end, bool run_
 //                                      PLAN THE PATH
 //###################################################
 float Planner::plan() {
+  //verify start and goal
+    std::cout << "start x:" << start.pose.pose.position.x << " y:" << start.pose.pose.position.y << " yaw:" << tf::getYaw(start.pose.pose.orientation) << std::endl;
+    std::cout << "goal x:" << goal.pose.position.x << " y:" << goal.pose.position.y << " yaw:" << tf::getYaw(goal.pose.orientation) << std::endl;
+
+
   // if a start as well as goal are defined go ahead and plan
   if (validStart && validGoal) {
 
@@ -299,7 +304,14 @@ bool Planner::plan_req_handler(hybrid_astar::planReqSrvRequest &req, hybrid_asta
   auto startPosePtr = boost::make_shared<geometry_msgs::PoseWithCovarianceStamped>(req.startPose);
   auto goalPosePtr = boost::make_shared<geometry_msgs::PoseStamped>(req.goalPose);
   this->setStart(startPosePtr,false);
-  this->setGoal(goalPosePtr);
+  this->setGoal(goalPosePtr, false);
+
+  auto plan_cost = plan();
+  //todo: return result path, too
+
+  //todo: add failed results
+  res.trav_dist.data = plan_cost;
+  res.result.data = true;
 
   return true;
 }
