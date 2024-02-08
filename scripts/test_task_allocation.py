@@ -161,11 +161,17 @@ if __name__ == '__main__':
                                               ,pot_goals[way])
                 print(cost_single)
                 task_ind = task*nWays
-                cost_mat[robot,task_ind + way] = cost_single
+                if(cost_single > 0):                    
+                    cost_mat[robot,task_ind + way] = cost_single
+                else:
+                    #large cost
+                    cost_mat[robot,task_ind + way] = 1000000
 
     #if result != -1:
     #    rospy.loginfo(f"Service call successful. Result: {result}")
     #else:
     #    rospy.logwarn("Service call failed.")
+                    
+    print(cost_mat)
 
     rospy.spin()

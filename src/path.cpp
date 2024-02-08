@@ -144,8 +144,13 @@ float Path::getPathLength()
 {
   float p_len = 0;
   
+  //std::cout << "leng: " << path.poses.size() << std::endl;
+  if(path.poses.size() == 0) //no path
+    return -1;
+
   for(size_t i=0; i<path.poses.size()-1; i++)
   {
+    //std::cout << i << std::endl;
     auto p1 = path.poses[i].pose.position;
     auto p2 = path.poses[i+1].pose.position;
     geometry_msgs::Point disp;

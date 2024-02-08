@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(hybrid_astar)
-
+#set(CMAKE_VERBOSE_MAKEFILE ON)
 
 ## C++11
 include(CheckCXXCompilerFlag)
@@ -27,13 +27,21 @@ find_package(catkin REQUIRED COMPONENTS
     geometry_msgs
     )
 
-add_service_files(DIRECTORY srv)
+#add_service_files(DIRECTORY srv)
+
+add_service_files(
+    FILES
+    cubeReqSrv.srv
+    planReqSrv.srv
+)
 
 generate_messages(
   DEPENDENCIES
   geometry_msgs
   std_msgs
 )
+
+
 
 set(SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/algorithm.cpp
@@ -94,6 +102,7 @@ target_link_libraries(hybrid_astar ${OMPL_LIBRARIES})
 
 add_executable(draw_cube src/draw_cube.cpp)
 target_link_libraries(draw_cube ${catkin_LIBRARIES})
+#add_dependencies(${PROJECT_NAME} ${PROJECT_NAME}_generate_messages_cpp)
 
 install(TARGETS ${PROJECT_NAME} tf_broadcaster
     ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
