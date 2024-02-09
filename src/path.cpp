@@ -45,15 +45,15 @@ void Path::clear() {
 //###################################################
 // __________
 // TRACE PATH
-void Path::updatePath(const std::vector<Node3D>& nodePath) {
+void Path::updatePath(const std::vector<Node3D>& nodePath, float origin_off_x, float origin_off_y) {
   path.header.stamp = ros::Time::now();
   int k = 0;
 
   for (size_t i = 0; i < nodePath.size(); ++i) {
-    addSegment(nodePath[i]);
-    addNode(nodePath[i], k);
+    addSegment(nodePath[i], origin_off_x, origin_off_y);
+    addNode(nodePath[i], k, origin_off_x, origin_off_y);
     k++;
-    addVehicle(nodePath[i], k);
+    addVehicle(nodePath[i], k, origin_off_x, origin_off_y);
     k++;
   }
 
@@ -61,10 +61,11 @@ void Path::updatePath(const std::vector<Node3D>& nodePath) {
 }
 // ___________
 // ADD SEGMENT
-void Path::addSegment(const Node3D& node) {
+void Path::addSegment(const Node3D& node, float origin_off_x, float origin_off_y) {
+// add origin offset here
   geometry_msgs::PoseStamped vertex;
-  vertex.pose.position.x = node.getX() * Constants::cellSize;
-  vertex.pose.position.y = node.getY() * Constants::cellSize;
+  vertex.pose.position.x = node.getX() * Constants::cellSize + origin_off_x;
+  vertex.pose.position.y = node.getY() * Constants::cellSize + origin_off_y;
   vertex.pose.position.z = 0;
   vertex.pose.orientation.x = 0;
   vertex.pose.orientation.y = 0;
@@ -75,7 +76,7 @@ void Path::addSegment(const Node3D& node) {
 
 // ________
 // ADD NODE
-void Path::addNode(const Node3D& node, int i) {
+void Path::addNode(const Node3D& node, int i, float origin_off_x, float origin_off_y) {
   visualization_msgs::Marker pathNode;
 
   // delete all previous markers
@@ -102,12 +103,13 @@ void Path::addNode(const Node3D& node, int i) {
     pathNode.color.b = Constants::purple.blue;
   }
 
-  pathNode.pose.position.x = node.getX() * Constants::cellSize;
-  pathNode.pose.position.y = node.getY() * Constants::cellSize;
+  //(Jeeho) add origin offset
+  pathNode.pose.position.x = node.getX() * Constants::cellSize + origin_off_x;
+  pathNode.pose.position.y = node.getY() * Constants::cellSize + origin_off_y;
   pathNodes.markers.push_back(pathNode);
 }
 
-void Path::addVehicle(const Node3D& node, int i) {
+void Path::addVehicle(const Node3D& node, int i, float origin_off_x, float origin_off_y) {
   visualization_msgs::Marker pathVehicle;
 
   // delete all previous markersg
@@ -134,8 +136,8 @@ void Path::addVehicle(const Node3D& node, int i) {
     pathVehicle.color.b = Constants::teal.blue;
   }
 
-  pathVehicle.pose.position.x = node.getX() * Constants::cellSize;
-  pathVehicle.pose.position.y = node.getY() * Constants::cellSize;
+  pathVehicle.pose.position.x = node.getX() * Constants::cellSize + origin_off_x;
+  pathVehicle.pose.position.y = node.getY() * Constants::cellSize + origin_off_y;
   pathVehicle.pose.orientation = tf::createQuaternionMsgFromYaw(node.getT());
   pathVehicles.markers.push_back(pathVehicle);
 }

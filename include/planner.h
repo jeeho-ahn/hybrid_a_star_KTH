@@ -127,8 +127,12 @@ class Planner {
   /// A lookup of analytical solutions (Dubin's paths)
   float* dubinsLookup = new float [Constants::headings * Constants::headings * Constants::dubinsWidth * Constants::dubinsWidth];
 
-  /// A list of cube blocks
+  /// (Jeeho) A list of cube blocks
   std::vector<jeeho::cube> cube_list = std::vector<jeeho::cube>();
+
+  /// (Jeeho) map origin offset
+  float origin_off_x = 0;
+  float origin_off_y = 0;
 
 };
 }

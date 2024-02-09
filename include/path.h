@@ -56,25 +56,33 @@ class Path {
      \brief Given a node pointer the path to the root node will be traced recursively
      \param node a 3D node, usually the goal node
      \param i a parameter for counting the number of nodes
+     \param origin_off_x the origin offset x (Jeeho)
+     \param origin_off_y the origin offset y (Jeeho)
   */
-  void updatePath(const std::vector<Node3D> &nodePath);
+  void updatePath(const std::vector<Node3D> &nodePath, float origin_off_x = 0, float origin_off_y = 0);
   /*!
      \brief Adds a segment to the path
      \param node a 3D node
+     \param origin_off_x the origin offset x (Jeeho)
+     \param origin_off_y the origin offset y (Jeeho)
   */
-  void addSegment(const Node3D& node);
+  void addSegment(const Node3D& node, float origin_off_x = 0, float origin_off_y = 0);
   /*!
      \brief Adds a node to the path
      \param node a 3D node
      \param i a parameter for counting the number of nodes
+     \param origin_off_x the origin offset x (Jeeho)
+     \param origin_off_y the origin offset y (Jeeho)
   */
-  void addNode(const Node3D& node, int i);
+  void addNode(const Node3D& node, int i, float origin_off_x = 0, float origin_off_y = 0);
   /*!
      \brief Adds a vehicle shape to the path
      \param node a 3D node
      \param i a parameter for counting the number of nodes
+     \param origin_off_x the origin offset x (Jeeho)
+     \param origin_off_y the origin offset y (Jeeho)
   */
-  void addVehicle(const Node3D& node, int i);
+  void addVehicle(const Node3D& node, int i, float origin_off_x = 0, float origin_off_y = 0);
 
   // ______________
   // PUBLISH METHODS

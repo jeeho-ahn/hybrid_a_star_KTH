@@ -182,6 +182,10 @@ Node3D* Algorithm::hybridAStar(Node3D& start,
           iSucc = nSucc->setIdx(width, height);
 
           // ensure successor is on grid and traversable
+          //for isOnGrid debug
+          auto og = nSucc->isOnGrid(width, height);
+          //for isTraversable debug
+          auto trb = configurationSpace.isTraversable(nSucc);
           if (nSucc->isOnGrid(width, height) && configurationSpace.isTraversable(nSucc)) {
 
             // ensure successor is not on closed list or it has the same index as the predecessor

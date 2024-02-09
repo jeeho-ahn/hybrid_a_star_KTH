@@ -8,6 +8,9 @@ from std_msgs.msg import Int32
 import math
 import numpy as np
 
+from multipath_hungarian.srv import allocationReqSrv
+from std_msgs.msg import Float32MultiArray
+
 def euler_to_quaternion(yaw, pitch, roll):
     cy = math.cos(yaw / 2.0)
     sy = math.sin(yaw / 2.0)
@@ -173,5 +176,24 @@ if __name__ == '__main__':
     #    rospy.logwarn("Service call failed.")
                     
     print(cost_mat)
+
+
+    #request allocation
+    rospy.wait_for_service('/mc_hungarian/allocReq')
+    try:
+        service_proxy = rospy.ServiceProxy('/mc_hungarian/allocReq', allocationReqSrv)
+        req = allocationReqSrv()
+        
+        # Call the service with flattened array
+        response = service_proxy(nRobot,nTask,nWays,cost_mat.astype(np.float32).flatten())
+        alloc_mat = np.array(response.allocation_matrix).reshape((nRobot, nTask*nWays))
+        print(alloc_mat)
+    except rospy.ServiceException as e:
+        print("Service call failed:", e)
+
+    rob, taskw = np.where(alloc_mat)
+
+    print(rob)
+    print(taskw)
 
     rospy.spin()

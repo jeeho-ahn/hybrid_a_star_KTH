@@ -64,6 +64,13 @@ void Planner::setMap(const nav_msgs::OccupancyGrid::Ptr map) {
   bool** binMap;
   binMap = new bool*[width];
 
+  //use map origin as cell offset
+  auto origin_off = map->info.origin;
+  origin_off_x = origin_off.position.x;
+  origin_off_y = origin_off.position.y;
+  //get map resolution
+  //auto resol = map->info.resolution;
+
   for (int x = 0; x < width; x++) { binMap[x] = new bool[height]; }
 
   for (int x = 0; x < width; ++x) {
@@ -222,9 +229,9 @@ float Planner::plan() {
     Node2D* nodes2D = new Node2D[width * height]();
 
     // ________________________
-    // retrieving goal position
-    float x = goal.pose.position.x / Constants::cellSize;
-    float y = goal.pose.position.y / Constants::cellSize;
+    // retrieving goal position (Jeeho) add origin offset
+    float x = (goal.pose.position.x - origin_off_x) / Constants::cellSize;
+    float y = (goal.pose.position.y - origin_off_y) / Constants::cellSize;
     float t = tf::getYaw(goal.pose.orientation);
     // set theta to a value (0,2PI]
     t = Helper::normalizeHeadingRad(t);
@@ -235,9 +242,9 @@ float Planner::plan() {
 
 
     // _________________________
-    // retrieving start position
-    x = start.pose.pose.position.x / Constants::cellSize;
-    y = start.pose.pose.position.y / Constants::cellSize;
+    // retrieving start position (Jeeho) add origin offset
+    x = (start.pose.pose.position.x - origin_off_x) / Constants::cellSize;
+    y = (start.pose.pose.position.y - origin_off_y) / Constants::cellSize;
     t = tf::getYaw(start.pose.pose.orientation);
     // set theta to a value (0,2PI]
     t = Helper::normalizeHeadingRad(t);
@@ -261,11 +268,11 @@ float Planner::plan() {
     // TRACE THE PATH
     smoother.tracePath(nSolution);
     // CREATE THE UPDATED PATH
-    path.updatePath(smoother.getPath());
+    path.updatePath(smoother.getPath(),origin_off_x,origin_off_y);
     // SMOOTH THE PATH
     smoother.smoothPath(voronoiDiagram);
     // CREATE THE UPDATED PATH
-    smoothedPath.updatePath(smoother.getPath());
+    smoothedPath.updatePath(smoother.getPath(),origin_off_x,origin_off_y);
     ros::Time t1 = ros::Time::now();
     ros::Duration d(t1 - t0);
     std::cout << "TIME in ms: " << d * 1000 << std::endl;
