@@ -138,5 +138,10 @@ install(DIRECTORY launch/
 catkin_install_python(PROGRAMS
 scripts/test_plan_client.py  # Replace with the actual name of your Python script
 scripts/test_task_allocation.py
+scripts/agent.py
+scripts/communications.py
+scripts/marker_publisher.py
+scripts/task.py
+scripts/transformation_tools.py
 DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
