@@ -155,7 +155,11 @@ Node3D* Algorithm::hybridAStar(Node3D& start,
       // GOAL TEST
       if (*nPred == goal || iterations > Constants::iterations) {
         // DEBUG
-        return nPred;
+        //throw failed if interation goes over limit
+        if(*nPred == goal)
+          return nPred;
+        else
+          return nullptr;
       }
 
       // ____________________

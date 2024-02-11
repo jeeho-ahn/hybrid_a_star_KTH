@@ -4,12 +4,55 @@ import rospy
 from hybrid_astar.srv import planReqSrv
 from geometry_msgs.msg import Pose
 from geometry_msgs.msg import PoseWithCovarianceStamped, PoseStamped
+
+from geometry_msgs.msg import Quaternion
+import tf.transformations as tf
+
 from std_msgs.msg import Int32
+from nav_msgs.msg import Path as navPath
 import math
 import numpy as np
+from visualization_msgs.msg import Marker, MarkerArray
 
 from multipath_hungarian.srv import allocationReqSrv
 from std_msgs.msg import Float32MultiArray
+
+from hybrid_astar.srv import addCubesSrv
+
+
+class MarkerPublisher:
+    def __init__(self):
+        self.marker_publisher = rospy.Publisher('/blocks', MarkerArray, queue_size=10)
+
+    def publish_marker(self, blocks_list):
+        marker_array = MarkerArray()
+        for n in range(len(blocks_list)):
+            sTask = blocks_list[n]
+
+            marker = Marker()
+            marker.header.frame_id = "map"  # Set the frame in which the marker will be displayed
+            marker.header.stamp = rospy.Time.now()
+            marker.type = Marker.CUBE
+            marker.action = Marker.ADD
+            marker.pose.position.x = sTask.x  # Set the position of the marker
+            marker.pose.position.y = sTask.y
+            marker.pose.position.z = 0
+            marker.pose.orientation.x = 0  # Set the orientation of the marker
+            marker.pose.orientation.y = 0
+            marker.pose.orientation.z = 0
+            marker.pose.orientation.w = 1
+            marker.scale.x = 0.2  # Set the scale of the marker (size)
+            marker.scale.y = 0.2
+            marker.scale.z = 1
+            marker.color.a = 1.0  # Set the alpha (transparency) of the marker
+            marker.color.r = 1.0  # Set the color of the marker (red)
+            marker.color.g = 0.0
+            marker.color.b = 0.0
+            marker.id = n
+            marker_array.markers.append(marker)
+
+        # Publish the marker
+        self.marker_publisher.publish(marker_array)
 
 def euler_to_quaternion(yaw, pitch, roll):
     cy = math.cos(yaw / 2.0)
@@ -58,6 +101,10 @@ def normalize_q(q_in):
 
     return q_in
 
+def fit_angle_rad(ang_in,ang_resol):
+    ang_step = 2*math.pi/float(ang_resol)
+    return round(ang_in/ang_step) * ang_step
+
 def service_client(start_pose_req, goal_pose_req):
     rospy.wait_for_service('/plan_req_test')  # Replace 'your_service_name' with the actual name of your service
     try:
@@ -90,18 +137,26 @@ class agent:
         return self.start_pose
 
 class task:
-    def __init__(self, pos_x_in, pos_y_in, arrival_gap:float=0) -> None:
+    def __init__(self, pos_x_in, pos_y_in, angle_res:int=72, size_in:float=0.2, arrival_offset:float=0.55) -> None:
         self.x = pos_x_in
         self.y = pos_y_in
 
-        self.poses = [0,1.5708,3.1415,-1.5708]
+        self.size = size_in
+        self.arr_off = arrival_offset
+
+        self.poses = [0,fit_angle_rad(1.5708,angle_res),fit_angle_rad(3.1415,angle_res),fit_angle_rad(-1.5708,angle_res)]
+
 
     def get_goal_poses(self) -> list:
         #todo: use loop
-        return [pose2D(self.x,self.y,self.poses[0]),
-                pose2D(self.x,self.y,self.poses[1]),
-                pose2D(self.x,self.y,self.poses[2]),
-                pose2D(self.x,self.y,self.poses[3])]
+        margin = (self.size/2) + self.arr_off
+        return [pose2D(self.x - margin,self.y,self.poses[0]),
+                pose2D(self.x,self.y - margin,self.poses[1]),
+                pose2D(self.x + margin,self.y,self.poses[2]),
+                pose2D(self.x,self.y+margin,self.poses[3])]
+    
+    def get_center(self) -> pose2D:
+        return pose2D(self.x, self.y, self.poses[0])
     
 
 
@@ -113,12 +168,33 @@ def req_plan_pose2D(start_req:pose2D,goal_req:pose2D):
     goal_pose.pose = goal_req.to_ros_pose()
 
     srv_res = service_client(start_pose, goal_pose)
-    return srv_res.trav_dist.data
+    return srv_res.trav_dist.data, srv_res.planned_path
+
+
+def nav_path_to_numpy(p_in:navPath):
+    # Extract relevant data from the nav_msgs::Path message
+    poses = p_in.poses
+    num_poses = len(poses)
+
+    # Convert poses to numpy array
+    poses_array = np.zeros((num_poses, 3))  # Assuming 2D + orientation poses (x, y, th)
+
+    for i, pose in enumerate(poses):
+        pose_data = pose.pose.position
+        poses_array[i, 0] = pose_data.x
+        poses_array[i, 1] = pose_data.y
+        poses_array[i, 2] = tf.euler_from_quaternion(pose.pose.orientation)[2]
+
+    return poses_array
+
+
 
 
 
 if __name__ == '__main__':
     rospy.init_node('test_task_allocation')  # Replace 'your_node_name' with the desired name for your node
+
+
 
     # Example start and goal poses
     #start_pose = PoseWithCovarianceStamped()
@@ -140,36 +216,74 @@ if __name__ == '__main__':
     #goal_pose.pose.orientation = normalize_q(goal_pose.pose.orientation)
     #goal_pose.pose.orientation = euler_deg_to_quaternion2d(173.047)
 
+    ang_res = 72
 
-    agents_list = [agent(4,0,1.5708), agent(2,6,-1.5708), 
-                   agent(0,0,1.5708), agent(0,6,-1.5708)]
+    agents_list = [agent(4,0,fit_angle_rad(1.5708,ang_res)), agent(2,6,fit_angle_rad(-1.5708,ang_res)), 
+                   agent(0,0,fit_angle_rad(1.5708,ang_res)), agent(0,6,fit_angle_rad(-1.5708,ang_res))]
     
 
-    task_list = [task(1.5,3), task(3.5,3), task(2.5,3.5), task(0.5,3.5)]
+    task_list = [task(1.5,3,ang_res), task(3.5,3,ang_res), task(2.5,3.5,ang_res), task(0.5,3.5,ang_res)]
 
+    #visualize blocks
+    blocks_pub = MarkerPublisher()
+
+    #request to add blocks as obstacles
+    rospy.wait_for_service("/add_cube_obstacles")
+    try:
+        service_proxy = rospy.ServiceProxy('/add_cube_obstacles', addCubesSrv)
+        #req = addCubesSrv()
+
+        #todo: define it in a better place
+        #req.size = 0.2
+
+        poses = []
+        for n in range(len(task_list)):
+            o = task_list[n].get_center().to_ros_pose()
+
+            poses.append(o)
+        #req.pose_in = poses
+        response = service_proxy(0.2,poses)
+        
+    except rospy.ServiceException as e:
+        print("Service call failed:", e)
+    
+    
 
     #generate cost matrix
     nRobot = 4
     nTask = 4
     nWays = 4
     cost_mat = np.zeros((nRobot, nTask*nWays), dtype=float)
+    #array to save paths in (any faster way than dicts of dicts?)
+    path_db = {}
+
+    path_publishers = []
+    #todo: handle empty path
+    for p in range(nRobot):
+        path_publishers.append(rospy.Publisher('/planned_path/'+str(p), navPath, queue_size=10))
 
     for robot in range(nRobot):
+        #robot path dict
+        path_db[robot] = {}
         for task in range(nTask):
             #init task
             pot_goals = task_list[task].get_goal_poses() #list of pose2D
 
+            #dict to be stored in row dict for paths
+            temp_task_dict = {}
+
             for way in range(nWays):
-                cost_single = req_plan_pose2D(agents_list[robot].get_start_pose()
+                cost_single, planned_path = req_plan_pose2D(agents_list[robot].get_start_pose()
                                               ,pot_goals[way])
                 print(cost_single)
                 task_ind = task*nWays
                 if(cost_single > 0):                    
                     cost_mat[robot,task_ind + way] = cost_single
+                    path_db[robot][task_ind + way] = planned_path
                 else:
                     #large cost
-                    cost_mat[robot,task_ind + way] = 1000000
-
+                    cost_mat[robot,task_ind + way] = 10000000
+            
     #if result != -1:
     #    rospy.loginfo(f"Service call successful. Result: {result}")
     #else:
@@ -182,7 +296,7 @@ if __name__ == '__main__':
     rospy.wait_for_service('/mc_hungarian/allocReq')
     try:
         service_proxy = rospy.ServiceProxy('/mc_hungarian/allocReq', allocationReqSrv)
-        req = allocationReqSrv()
+        #req = allocationReqSrv()
         
         # Call the service with flattened array
         response = service_proxy(nRobot,nTask,nWays,cost_mat.astype(np.float32).flatten())
@@ -192,8 +306,23 @@ if __name__ == '__main__':
         print("Service call failed:", e)
 
     rob, taskw = np.where(alloc_mat)
+    #print(rob)
+    #print(taskw)
 
-    print(rob)
-    print(taskw)
+    #visualize blocks
+    blocks_pub.publish_marker(task_list)
 
-    rospy.spin()
+    #publish paths 
+    path_publishers = []
+    for p in range(len(rob)):
+        path_publishers.append(rospy.Publisher('/planned_path/'+str(p), navPath, queue_size=10))
+    for p in range(len(rob)):
+        path_to_pub = path_db[rob[p]][taskw[p]]
+        nSub = path_publishers[p].get_num_connections()
+        if(nSub):
+            path_publishers[p].publish(path_to_pub)
+
+    while not rospy.is_shutdown(): 
+        rospy.spin()
+
+    

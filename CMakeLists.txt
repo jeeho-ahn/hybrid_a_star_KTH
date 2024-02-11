@@ -26,12 +26,24 @@ find_package(catkin REQUIRED COMPONENTS
     tf
     geometry_msgs
     message_generation
-    )
+    nav_msgs
+)
+
+#for map parser
+find_package(PkgConfig)
+pkg_check_modules(YamlCpp yaml-cpp)
+find_package(Boost REQUIRED COMPONENTS filesystem)
+
+find_package(SDL REQUIRED)
+find_package(SDL_image REQUIRED)
+find_package(Bullet REQUIRED)
+
 
 #add_service_files(DIRECTORY srv)
 
 add_service_files(
     FILES
+    addCubesSrv.srv
     cubeReqSrv.srv
     planReqSrv.srv
 )
@@ -40,6 +52,7 @@ generate_messages(
   DEPENDENCIES
   geometry_msgs
   std_msgs
+  nav_msgs
 )
 
 
@@ -81,7 +94,9 @@ set(HEADERS
 add_library(HYAS ${SOURCES} ${HEADERS})
 
 ## Declare a catkin package
-catkin_package(CATKIN_DEPENDS rospy std_msgs geometry_msgs)
+catkin_package(CATKIN_DEPENDS rospy std_msgs geometry_msgs
+    LIBRARIES
+        map_server_image_loader)
 
 ## OPEN MOTION PLANNING LIBRARY
 find_package(ompl REQUIRED)
@@ -93,6 +108,8 @@ endif(NOT OMPL_FOUND)
 include_directories(include ${catkin_INCLUDE_DIRS})
 include_directories(include ${OMPL_INCLUDE_DIRS})
 include_directories(include include)
+include_directories(include ${YAMLCPP_INCLUDE_DIRS} maps ${SDL_INCLUDE_DIR}
+${SDL_IMAGE_INCLUDE_DIRS} ${BULLET_INCLUDE_DIRS})
 
 add_executable(tf_broadcaster src/tf_broadcaster.cpp)
 target_link_libraries(tf_broadcaster ${catkin_LIBRARIES})
@@ -100,6 +117,8 @@ target_link_libraries(tf_broadcaster ${catkin_LIBRARIES})
 add_executable(hybrid_astar src/main.cpp ${HEADERS} ${SOURCES})
 target_link_libraries(hybrid_astar ${catkin_LIBRARIES})
 target_link_libraries(hybrid_astar ${OMPL_LIBRARIES})
+target_link_libraries(hybrid_astar yaml-cpp ${Boost_INCLUDE_DIRS} ${SDL_LIBRARY}
+${SDL_IMAGE_LIBRARIES} ${BULLET_LIBRARIES})
 
 add_executable(draw_cube src/draw_cube.cpp)
 target_link_libraries(draw_cube ${catkin_LIBRARIES})
@@ -118,5 +137,6 @@ install(DIRECTORY launch/
 ## Mark executable scripts (Python etc.) for installation
 catkin_install_python(PROGRAMS
 scripts/test_plan_client.py  # Replace with the actual name of your Python script
+scripts/test_task_allocation.py
 DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )

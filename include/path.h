@@ -98,6 +98,9 @@ class Path {
   //get path length
   float getPathLength();
 
+  //return nav::msgs path
+  std::shared_ptr<nav_msgs::Path> get_nav_path(){ return std::make_shared<nav_msgs::Path>(path); }
+
  private:
   /// A handle to the ROS node
   ros::NodeHandle n;

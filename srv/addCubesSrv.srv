@@ -1,0 +1,4 @@
+float32 cube_size
+geometry_msgs/Pose[] poses_in
+---
+std_msgs/Int32 result

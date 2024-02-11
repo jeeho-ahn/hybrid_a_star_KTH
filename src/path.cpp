@@ -67,10 +67,13 @@ void Path::addSegment(const Node3D& node, float origin_off_x, float origin_off_y
   vertex.pose.position.x = node.getX() * Constants::cellSize + origin_off_x;
   vertex.pose.position.y = node.getY() * Constants::cellSize + origin_off_y;
   vertex.pose.position.z = 0;
-  vertex.pose.orientation.x = 0;
-  vertex.pose.orientation.y = 0;
-  vertex.pose.orientation.z = 0;
-  vertex.pose.orientation.w = 0;
+  //vertex.pose.orientation.x = 0;
+  //vertex.pose.orientation.y = 0;
+  //vertex.pose.orientation.z = 0;
+  //vertex.pose.orientation.w = 0;
+  //add orientation reference
+  vertex.pose.orientation = tf::createQuaternionMsgFromYaw(node.getT());
+
   path.poses.push_back(vertex);
 }
 

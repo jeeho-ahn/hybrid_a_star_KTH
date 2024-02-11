@@ -57,7 +57,12 @@ int main(int argc, char** argv) {
   ros::init(argc, argv, "a_star");
 
   HybridAStar::Planner hy;
-  hy.plan(); 
+
+  ros::spinOnce();
+  ros::Duration(7.0).sleep();
+
+  hy.load_map_yaml("/home/jeeho/catkin_ws/src/hybrid_a_star_KTH/maps/map.yaml");
+  //hy.plan(); 
 
   ros::spin();
   return 0;

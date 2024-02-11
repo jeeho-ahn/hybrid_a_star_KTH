@@ -35,6 +35,16 @@ def euler_deg_to_quaternion2d(angle_in_deg):
 
     return out_pose.orientation
 
+def euler_rad_to_quaternion2d(angle_in_rad):
+    w,x,y,z = euler_to_quaternion(angle_in_rad,0,0)
+
+    out_pose = Pose()
+    out_pose.orientation.w = w
+    out_pose.orientation.x = x
+    out_pose.orientation.y = y
+    out_pose.orientation.z = z
+
+    return out_pose.orientation
 
 def sq(d):
     return d*d;
@@ -59,6 +69,11 @@ def service_client(start_pose, goal_pose):
         print(f"Service call failed: {e}")
         return -1
 
+
+def fit_angle_rad(ang_in,ang_resol):
+    ang_step = 2*math.pi/float(ang_resol)
+    return math.floor(ang_in/ang_step) * ang_step
+
 if __name__ == '__main__':
     rospy.init_node('test_plan_client')  # Replace 'your_node_name' with the desired name for your node
 
@@ -68,19 +83,24 @@ if __name__ == '__main__':
 
     # Example start and goal poses with specific values
     start_pose = PoseWithCovarianceStamped()
-    start_pose.pose.pose.position.x = 0
+    start_pose.pose.pose.position.x = 4
     start_pose.pose.pose.position.y = 0
     #start_pose.pose.pose.orientation.z = 0.927
     #start_pose.pose.pose.orientation = normalize_q(start_pose.pose.pose.orientation)
-    start_pose.pose.pose.orientation = euler_deg_to_quaternion2d(90)
+    #start_pose.pose.pose.orientation = euler_deg_to_quaternion2d(90)
+
+    start_pose.pose.pose.orientation = euler_rad_to_quaternion2d(fit_angle_rad(1.5708,72))
+
+
     # Add other pose information if needed
 
     goal_pose = PoseStamped()
-    goal_pose.pose.position.x = 1.5
-    goal_pose.pose.position.y = 3
+    goal_pose.pose.position.x = 3.5
+    goal_pose.pose.position.y = 3-0.7
     #goal_pose.pose.orientation.z = 0.623
     #goal_pose.pose.orientation = normalize_q(goal_pose.pose.orientation)
-    goal_pose.pose.orientation = euler_deg_to_quaternion2d(0)
+    #goal_pose.pose.orientation = euler_deg_to_quaternion2d(90)
+    goal_pose.pose.orientation = euler_rad_to_quaternion2d(fit_angle_rad(1.5708,72))
 
     result = service_client(start_pose, goal_pose)
 

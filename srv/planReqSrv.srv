@@ -3,3 +3,4 @@ geometry_msgs/PoseStamped goalPose
 ---
 std_msgs/Int32 result
 std_msgs/Float32 trav_dist
+nav_msgs/Path planned_path

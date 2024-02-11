@@ -3,17 +3,27 @@
 
 #include <iostream>
 #include <ctime>
+#include <fstream> //for reading map file
+#include <yaml-cpp/yaml.h> //for reading map yaml
+#include <map_server/image_loader.h>
+#include <boost/filesystem.hpp> //for map parser
+#include <SDL/SDL_image.h>
+#include <LinearMath/btQuaternion.h>
 
 #include <ros/ros.h>
 #include <tf/transform_datatypes.h>
 #include <tf/transform_listener.h>
 #include <nav_msgs/OccupancyGrid.h>
+#include <nav_msgs/GetMap.h>
+#include <nav_msgs/MapMetaData.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 //services
 #include <hybrid_astar/planReqSrv.h>
 #include <hybrid_astar/cubeReqSrv.h>
+#include <hybrid_astar/addCubesSrv.h>
 #include <std_srvs/Trigger.h>
 #include <vector>
+#include <memory>
 
 #include "constants.h"
 #include "helper.h"
@@ -68,7 +78,7 @@ class Planner {
   /*!
      \brief The central function entry point making the necessary preparations to start the planning.
   */
-  float plan();
+  std::shared_ptr<Path> plan();
 
   /// The plan request handler
   bool plan_req_handler(hybrid_astar::planReqSrvRequest &req, hybrid_astar::planReqSrvResponse &res);
@@ -76,7 +86,12 @@ class Planner {
   bool cube_req_handler(hybrid_astar::cubeReqSrvRequest &req, hybrid_astar::cubeReqSrvResponse &res);
   /// The cube cost request handler
   bool push_cost_req_handler(std_srvs::TriggerRequest &req, std_srvs::TriggerResponse &res);
-
+  /// Add cubes as obstacles on map
+  bool add_cubes_req_handler(hybrid_astar::addCubesSrvRequest &req, hybrid_astar::addCubesSrvResponse &res);
+  /// Read grid map from file
+  std::shared_ptr<nav_msgs::OccupancyGrid> readMapFromFile(const std::string& file_path);
+  /// Load map from yaml
+  bool load_map_yaml(std::string yaml_path);
  private:
   /// The node handle
   ros::NodeHandle n;
@@ -99,6 +114,14 @@ class Planner {
   ros::ServiceServer srvCubeReqService;
   /// The cube push cost est. req
   ros::ServiceServer srvPushCostReqService;
+
+  /// The service client to update map on map_server
+  ros::ServiceClient set_map_client;
+  ///  The service to add cubes as obstacles
+  ros::ServiceServer srvAddCubesReqService;
+  /// Own map publisher (use it as a substitute for map_server)
+  ros::Publisher map_publisher;
+ 
 
   /// The path produced by the hybrid A* algorithm
   Path path;
