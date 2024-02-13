@@ -6,10 +6,16 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
+        - /Map1
         - /Path3
         - /Path4
         - /Path5
+        - /Path5/Offset1
         - /Path6
+        - /Marker2
+        - /Marker3
+        - /Marker4
+        - /Path7
       Splitter Ratio: 0.5
     Tree Height: 1252
   - Class: rviz/Selection
@@ -55,7 +61,7 @@ Visualization Manager:
       Plane Cell Count: 10
       Reference Frame: <Fixed Frame>
       Value: true
-    - Alpha: 0.699999988079071
+    - Alpha: 0.30000001192092896
       Class: rviz/Map
       Color Scheme: map
       Draw Behind: false
@@ -70,7 +76,7 @@ Visualization Manager:
       Axes Radius: 0.10000000149011612
       Class: rviz/Pose
       Color: 255; 25; 0
-      Enabled: true
+      Enabled: false
       Head Length: 0.30000001192092896
       Head Radius: 0.10000000149011612
       Name: Pose
@@ -80,13 +86,13 @@ Visualization Manager:
       Shape: Arrow
       Topic: /move_base_simple/goal
       Unreliable: false
-      Value: true
+      Value: false
     - Alpha: 1
       Axes Length: 1
       Axes Radius: 0.10000000149011612
       Class: rviz/Pose
       Color: 255; 25; 0
-      Enabled: true
+      Enabled: false
       Head Length: 0.30000001192092896
       Head Radius: 0.10000000149011612
       Name: Pose
@@ -96,12 +102,12 @@ Visualization Manager:
       Shape: Arrow
       Topic: /move_base_simple/start
       Unreliable: false
-      Value: true
+      Value: false
     - Alpha: 1
       Buffer Length: 1
       Class: rviz/Path
       Color: 25; 255; 0
-      Enabled: true
+      Enabled: false
       Head Diameter: 0.30000001192092896
       Head Length: 0.20000000298023224
       Length: 0.30000001192092896
@@ -120,28 +126,28 @@ Visualization Manager:
       Shaft Length: 0.10000000149011612
       Topic: /path
       Unreliable: false
-      Value: true
+      Value: false
     - Class: rviz/MarkerArray
       Enabled: true
       Marker Topic: /pathNodes
       Name: MarkerArray
       Namespaces:
-        "": true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
-      Enabled: true
+      Enabled: false
       Marker Topic: /pathVehicle
       Name: MarkerArray
       Namespaces:
-        "": true
+        {}
       Queue Size: 100
-      Value: true
+      Value: false
     - Alpha: 1
       Buffer Length: 1
       Class: rviz/Path
       Color: 25; 255; 0
-      Enabled: true
+      Enabled: false
       Head Diameter: 0.30000001192092896
       Head Length: 0.20000000298023224
       Length: 0.30000001192092896
@@ -160,23 +166,23 @@ Visualization Manager:
       Shaft Length: 0.10000000149011612
       Topic: /sPath
       Unreliable: false
-      Value: true
+      Value: false
     - Class: rviz/MarkerArray
-      Enabled: true
+      Enabled: false
       Marker Topic: /sPathNodes
       Name: MarkerArray
       Namespaces:
-        "": true
+        {}
       Queue Size: 100
-      Value: true
+      Value: false
     - Class: rviz/MarkerArray
-      Enabled: true
+      Enabled: false
       Marker Topic: /sPathVehicle
       Name: MarkerArray
       Namespaces:
-        "": true
+        {}
       Queue Size: 100
-      Value: true
+      Value: false
     - Class: rviz/Marker
       Enabled: true
       Marker Topic: /cube_marker
@@ -193,7 +199,7 @@ Visualization Manager:
       Head Diameter: 0.30000001192092896
       Head Length: 0.20000000298023224
       Length: 0.30000001192092896
-      Line Style: Lines
+      Line Style: Billboards
       Line Width: 0.029999999329447746
       Name: Path
       Offset:
@@ -217,14 +223,14 @@ Visualization Manager:
       Head Diameter: 0.30000001192092896
       Head Length: 0.20000000298023224
       Length: 0.30000001192092896
-      Line Style: Lines
+      Line Style: Billboards
       Line Width: 0.029999999329447746
       Name: Path
       Offset:
         X: 0
         Y: 0
         Z: 0
-      Pose Color: 255; 85; 255
+      Pose Color: 255; 170; 0
       Pose Style: None
       Queue Size: 10
       Radius: 0.029999999329447746
@@ -241,7 +247,7 @@ Visualization Manager:
       Head Diameter: 0.02500000037252903
       Head Length: 0.02500000037252903
       Length: 0.30000001192092896
-      Line Style: Lines
+      Line Style: Billboards
       Line Width: 0.029999999329447746
       Name: Path
       Offset:
@@ -249,13 +255,69 @@ Visualization Manager:
         Y: 0
         Z: 0
       Pose Color: 255; 85; 255
-      Pose Style: Arrows
+      Pose Style: None
       Queue Size: 10
       Radius: 0.029999999329447746
       Shaft Diameter: 0.009999999776482582
       Shaft Length: 0.05000000074505806
       Topic: /planned_path/2
       Unreliable: false
+      Value: true
+    - Alpha: 1
+      Buffer Length: 1
+      Class: rviz/Path
+      Color: 25; 255; 0
+      Enabled: true
+      Head Diameter: 0.30000001192092896
+      Head Length: 0.20000000298023224
+      Length: 0.30000001192092896
+      Line Style: Billboards
+      Line Width: 0.029999999329447746
+      Name: Path
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Pose Color: 255; 85; 255
+      Pose Style: None
+      Queue Size: 10
+      Radius: 0.029999999329447746
+      Shaft Diameter: 0.10000000149011612
+      Shaft Length: 0.10000000149011612
+      Topic: /planned_path/3
+      Unreliable: false
+      Value: true
+    - Class: rviz/MarkerArray
+      Enabled: true
+      Marker Topic: /blocks
+      Name: MarkerArray
+      Namespaces:
+        "": true
+      Queue Size: 100
+      Value: true
+    - Class: rviz/Marker
+      Enabled: true
+      Marker Topic: /planned_line/0
+      Name: Marker
+      Namespaces:
+        "": true
+      Queue Size: 100
+      Value: true
+    - Class: rviz/Marker
+      Enabled: true
+      Marker Topic: /planned_line/1
+      Name: Marker
+      Namespaces:
+        "": true
+      Queue Size: 100
+      Value: true
+    - Class: rviz/Marker
+      Enabled: true
+      Marker Topic: /planned_line/2
+      Name: Marker
+      Namespaces:
+        "": true
+      Queue Size: 100
       Value: true
     - Alpha: 1
       Buffer Length: 1
@@ -281,12 +343,12 @@ Visualization Manager:
       Topic: /planned_path/3
       Unreliable: false
       Value: true
-    - Class: rviz/MarkerArray
+    - Class: rviz/Marker
       Enabled: true
-      Marker Topic: /blocks
-      Name: MarkerArray
+      Marker Topic: /planned_line/3
+      Name: Marker
       Namespaces:
-        {}
+        "": true
       Queue Size: 100
       Value: true
   Enabled: true
@@ -326,10 +388,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 76.15057373046875
+      Scale: 149.12266540527344
       Target Frame: <Fixed Frame>
-      X: 4.0363850593566895
-      Y: 3.156407594680786
+      X: 2.093158483505249
+      Y: 3.195708751678467
     Saved: ~
 Window Geometry:
   Displays:
@@ -347,5 +409,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1887
-  X: 4025
-  Y: 229
+  X: 4954
+  Y: 260

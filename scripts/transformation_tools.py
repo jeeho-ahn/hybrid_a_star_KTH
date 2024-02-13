@@ -66,3 +66,10 @@ def fit_angle_rad(ang_in,ang_resol):
     """
     ang_step = 2*math.pi/float(ang_resol)
     return round(ang_in/ang_step) * ang_step
+
+def normalize(v):
+    magnitude = math.sqrt(v[0]**2 + v[1]**2)
+    if magnitude == 0:
+        return (0, 0)  # Avoid division by zero
+    normalized_vector = (v[0] / magnitude, v[1] / magnitude)
+    return normalized_vector

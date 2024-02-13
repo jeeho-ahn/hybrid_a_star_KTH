@@ -70,28 +70,40 @@ def publish_paths(rob,taskw,path_publishers,path_db):
         if(nSub):
             path_publishers[p].publish(path_to_pub)
 
-def generate_cost_matrix(nRobot:int,nTask:int,nWays:int,path_db:dict,ptask_list:list,agents_list:list):
+def generate_cost_matrix(nRobot:int,nTask:int,nWays:int,path_db:dict,task_list:list,agents_list:list,alloc_type='pickup', print_cost=True):
     cost_mat = np.zeros((nRobot, nTask*nWays), dtype=float)
+
     for robot in range(nRobot):
         #robot path dict
         path_db[robot] = {}
         for task in range(nTask):
             #init task
-            pot_goals = ptask_list[task].get_goal_poses() #list of pose2D
+            pot_goals = task_list[task].get_goal_poses() #list of pose2D
 
             #dict to be stored in row dict for paths
             temp_task_dict = {}
 
             for way in range(nWays):
-                cost_single, planned_path = req_plan_pose2D(agents_list[robot].get_start_pose()
-                                              ,pot_goals[way])
-                print(cost_single)
-                task_ind = task*nWays
-                if(cost_single > 0):                    
-                    cost_mat[robot,task_ind + way] = cost_single
-                    path_db[robot][task_ind + way] = planned_path
-                else:
-                    #large cost
-                    cost_mat[robot,task_ind + way] = 10000000
+                if(alloc_type == 'pickup'):
+                    cost_single, planned_path = req_plan_pose2D(agents_list[robot].get_start_pose()
+                                                ,pot_goals[way])
+                    if(print_cost):
+                        print(cost_single)
+                    task_ind = task*nWays
+                    if(cost_single > 0):                    
+                        cost_mat[robot,task_ind + way] = cost_single
+                        path_db[robot][task_ind + way] = planned_path
+                    else:
+                        #large cost
+                        cost_mat[robot,task_ind + way] = 10000000
+
+                elif(alloc_type == 'delivery'):
+                    
+                    angle_cost = agents_list[robot].get_angle_cost(pot_goals[way])
+                    if(print_cost):
+                        print(angle_cost)
+                    task_ind = task*nWays
+                    cost_mat[robot,task_ind + way] = angle_cost
+
 
     return cost_mat
