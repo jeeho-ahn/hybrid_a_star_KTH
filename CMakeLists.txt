@@ -123,6 +123,8 @@ ${SDL_IMAGE_LIBRARIES} ${BULLET_LIBRARIES})
 add_executable(draw_cube src/draw_cube.cpp)
 target_link_libraries(draw_cube ${catkin_LIBRARIES})
 #add_dependencies(${PROJECT_NAME} ${PROJECT_NAME}_generate_messages_cpp)
+add_dependencies(${PROJECT_NAME} msg_pkg_generate_messages_cpp)
+
 
 install(TARGETS ${PROJECT_NAME} tf_broadcaster
     ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
