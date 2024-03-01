@@ -1,5 +1,7 @@
 #include "planner.h"
 
+float origin_offset_x, origin_offset_y;
+
 using namespace HybridAStar;
 //###################################################
 //                                        CONSTRUCTOR
@@ -75,8 +77,10 @@ void Planner::setMap(const nav_msgs::OccupancyGrid::Ptr map) {
 
   //use map origin as cell offset
   auto origin_off = map->info.origin;
-  origin_off_x = origin_off.position.x;
-  origin_off_y = origin_off.position.y;
+  //origin_off_x = origin_off.position.x;
+  //origin_off_y = origin_off.position.y;
+  origin_offset_x = origin_off.position.x;
+  origin_offset_y = origin_off.position.y;
   //get map resolution
   //auto resol = map->info.resolution;
 
@@ -122,9 +126,12 @@ void Planner::setMap(const nav_msgs::OccupancyGrid::Ptr map) {
 //###################################################
 
 void Planner::setStart(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& initial, bool run_plan) {
-  float x = initial->pose.pose.position.x / Constants::cellSize;
-  float y = initial->pose.pose.position.y / Constants::cellSize;
+  //float x = initial->pose.pose.position.x / Constants::cellSize;
+  //float y = initial->pose.pose.position.y / Constants::cellSize;
+  auto x_y_pair = world_to_grid<float>(initial->pose.pose.position.x,initial->pose.pose.position.y);
   float t = tf::getYaw(initial->pose.pose.orientation);
+  float x = x_y_pair.first;
+  float y = x_y_pair.second;
   // publish the start without covariance for rviz
   geometry_msgs::PoseStamped startN;
   startN.pose.position = initial->pose.pose.position;
@@ -149,9 +156,12 @@ void Planner::setStart(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr&
 
 
 void Planner::setStart_cb(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& initial) {
-  float x = initial->pose.pose.position.x / Constants::cellSize;
-  float y = initial->pose.pose.position.y / Constants::cellSize;
+  //float x = initial->pose.pose.position.x / Constants::cellSize;
+  //float y = initial->pose.pose.position.y / Constants::cellSize;
+  auto x_y_pair = world_to_grid<float>(initial->pose.pose.position.x,initial->pose.pose.position.y);
   float t = tf::getYaw(initial->pose.pose.orientation);
+  float x = x_y_pair.first;
+  float y = x_y_pair.second;
   // publish the start without covariance for rviz
   geometry_msgs::PoseStamped startN;
   startN.pose.position = initial->pose.pose.position;
@@ -179,9 +189,12 @@ void Planner::setStart_cb(const geometry_msgs::PoseWithCovarianceStamped::ConstP
 //###################################################
 void Planner::setGoal_cb(const geometry_msgs::PoseStamped::ConstPtr& end) {
   // retrieving goal position
-  float x = end->pose.position.x / Constants::cellSize;
-  float y = end->pose.position.y / Constants::cellSize;
+  //float x = initial->pose.pose.position.x / Constants::cellSize;
+  //float y = initial->pose.pose.position.y / Constants::cellSize;
+  auto x_y_pair = world_to_grid<float>(end->pose.position.x,end->pose.position.y);
   float t = tf::getYaw(end->pose.orientation);
+  float x = x_y_pair.first;
+  float y = x_y_pair.second;
 
   std::cout << "I am seeing a new goal x:" << end->pose.position.x << " y:" << end->pose.position.y << " t:" << Helper::toDeg(t) << std::endl;
 
@@ -198,9 +211,12 @@ void Planner::setGoal_cb(const geometry_msgs::PoseStamped::ConstPtr& end) {
 
 void Planner::setGoal(const geometry_msgs::PoseStamped::ConstPtr& end, bool run_plan) {
   // retrieving goal position
-  float x = end->pose.position.x / Constants::cellSize;
-  float y = end->pose.position.y / Constants::cellSize;
+  //float x = initial->pose.pose.position.x / Constants::cellSize;
+  //float y = initial->pose.pose.position.y / Constants::cellSize;
+  auto x_y_pair = world_to_grid<float>(end->pose.position.x,end->pose.position.y);
   float t = tf::getYaw(end->pose.orientation);
+  float x = x_y_pair.first;
+  float y = x_y_pair.second;
 
   std::cout << "I am seeing a new goal x:" << end->pose.position.x << " y:" << end->pose.position.y << " t:" << Helper::toDeg(t) << std::endl;
 
@@ -239,9 +255,14 @@ std::shared_ptr<Path> Planner::plan() {
 
     // ________________________
     // retrieving goal position (Jeeho) add origin offset
-    float x = (goal.pose.position.x - origin_off_x) / Constants::cellSize;
-    float y = (goal.pose.position.y - origin_off_y) / Constants::cellSize;
+    //float x = (goal.pose.position.x - origin_off_x) / Constants::cellSize;
+    //float y = (goal.pose.position.y - origin_off_y) / Constants::cellSize;
+    auto x_y_pair_goal = world_to_grid<float>(goal.pose.position.x,goal.pose.position.y);
     float t = tf::getYaw(goal.pose.orientation);
+    float x = x_y_pair_goal.first;
+    float y = x_y_pair_goal.second;
+
+
     // set theta to a value (0,2PI]
     t = Helper::normalizeHeadingRad(t);
     const Node3D nGoal(x, y, t, 0, 0, nullptr);
@@ -252,9 +273,14 @@ std::shared_ptr<Path> Planner::plan() {
 
     // _________________________
     // retrieving start position (Jeeho) add origin offset
-    x = (start.pose.pose.position.x - origin_off_x) / Constants::cellSize;
-    y = (start.pose.pose.position.y - origin_off_y) / Constants::cellSize;
+    //x = (start.pose.pose.position.x - origin_off_x) / Constants::cellSize;
+    //y = (start.pose.pose.position.y - origin_off_y) / Constants::cellSize;
+
+    auto x_y_pair_start = world_to_grid<float>(start.pose.pose.position.x,start.pose.pose.position.y);
     t = tf::getYaw(start.pose.pose.orientation);
+    x = x_y_pair_start.first;
+    y = x_y_pair_start.second;
+
     // set theta to a value (0,2PI]
     t = Helper::normalizeHeadingRad(t);
     Node3D nStart(x, y, t, 0, 0, nullptr);
@@ -279,11 +305,11 @@ std::shared_ptr<Path> Planner::plan() {
     // TRACE THE PATH
     smoother.tracePath(nSolution);
     // CREATE THE UPDATED PATH
-    path.updatePath(smoother.getPath(),origin_off_x,origin_off_y);
+    path.updatePath(smoother.getPath(),grid->info.origin.position.x,grid->info.origin.position.y);
     // SMOOTH THE PATH
     smoother.smoothPath(voronoiDiagram);
     // CREATE THE UPDATED PATH
-    smoothedPath.updatePath(smoother.getPath(),origin_off_x,origin_off_y);
+    smoothedPath.updatePath(smoother.getPath(),grid->info.origin.position.x,grid->info.origin.position.y);
     ros::Time t1 = ros::Time::now();
     ros::Duration d(t1 - t0);
     std::cout << "TIME in ms: " << d * 1000 << std::endl;
@@ -405,8 +431,11 @@ bool Planner::add_cubes_req_handler(hybrid_astar::addCubesSrvRequest &req, hybri
   for(size_t n=0; n<req.poses_in.size(); n++)
   {
     // convert to grid coord
-    int x_cell = int((req.poses_in[n].position.x - origin_off_x) / Constants::cellSize);
-    int y_cell = int((req.poses_in[n].position.y - origin_off_y) / Constants::cellSize);
+    auto x_y_pair = world_to_grid<int>(req.poses_in[n].position.x,req.poses_in[n].position.y);
+    //int x_cell = int((req.poses_in[n].position.x - grid->info.origin.position.x) / Constants::cellSize);
+    //int y_cell = int((req.poses_in[n].position.y - grid->info.origin.position.y) / Constants::cellSize);
+    int x_cell = x_y_pair.first;
+    int y_cell = x_y_pair.second;
 
     // find cells to block and apply
     size_t size_cell = std::ceil(req.cube_size / Constants::cellSize);
@@ -602,6 +631,8 @@ bool Planner::load_map_yaml(std::string yaml_path)
   //}
 
   // The document loading process changed in yaml-cpp 0.5.
+  if(yaml_path == "")
+    yaml_path = this->map_file;
   YAML::Node doc = YAML::LoadFile(yaml_path);
 
   try {

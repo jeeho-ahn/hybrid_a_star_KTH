@@ -37,6 +37,9 @@
 #include "lookup.h"
 #include <cube_block.h>
 
+//todo: make this better
+extern float origin_offset_x, origin_offset_y;
+
 namespace HybridAStar {
 /*!
    \brief A class that creates the interface for the hybrid A* algorithm.
@@ -91,7 +94,27 @@ class Planner {
   /// Read grid map from file
   std::shared_ptr<nav_msgs::OccupancyGrid> readMapFromFile(const std::string& file_path);
   /// Load map from yaml
-  bool load_map_yaml(std::string yaml_path);
+  bool load_map_yaml(std::string yaml_path = "");
+  // World coordinate to grid indices
+  template<typename T>
+  std::pair<T,T> world_to_grid(float x_in, float y_in)
+  {
+    T x_out = (x_in - grid->info.origin.position.x) / Constants::cellSize;
+    T y_out = (y_in - grid->info.origin.position.y) / Constants::cellSize;
+
+    return std::make_pair(x_out, y_out);
+  }
+
+  // Grid indices to world coordinate
+  template<typename T>
+  std::pair<float,float> grid_to_world(T grid_x_in, T grid_y_in)
+  {
+    float x_out = grid_x_in * Constants::cellSize + grid->info.origin.position.x;
+    float y_out = grid_y_in * Constants::cellSize + grid->info.origin.position.y;
+
+    return std::make_pair(x_out, y_out);
+  }
+
  private:
   /// The node handle
   ros::NodeHandle n;
@@ -154,9 +177,10 @@ class Planner {
   std::vector<jeeho::cube> cube_list = std::vector<jeeho::cube>();
 
   /// (Jeeho) map origin offset
-  float origin_off_x = 0;
-  float origin_off_y = 0;
+  //float origin_off_x = 0;
+  //float origin_off_y = 0;
 
+   std::string map_file = "";
 };
 }
 #endif // PLANNER_H

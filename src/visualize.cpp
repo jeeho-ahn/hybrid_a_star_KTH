@@ -39,8 +39,8 @@ void Visualize::publishNode3DPose(Node3D& node) {
   pose.header.frame_id = "path";
   pose.header.stamp = ros::Time::now();
   pose.header.seq = 0;
-  pose.pose.position.x = node.getX() * Constants::cellSize;
-  pose.pose.position.y = node.getY() * Constants::cellSize;
+  pose.pose.position.x = node.getX() * Constants::cellSize + origin_offset_x;
+  pose.pose.position.y = node.getY() * Constants::cellSize + origin_offset_y;
 
   //FORWARD
   if (node.getPrim() < 3) {
@@ -60,8 +60,8 @@ void Visualize::publishNode3DPose(Node3D& node) {
 //###################################################
 void Visualize::publishNode3DPoses(Node3D& node) {
   geometry_msgs::Pose pose;
-  pose.position.x = node.getX() * Constants::cellSize;
-  pose.position.y = node.getY() * Constants::cellSize;
+  pose.position.x = node.getX() * Constants::cellSize + origin_offset_x;
+  pose.position.y = node.getY() * Constants::cellSize + origin_offset_y;
 
   //FORWARD
   if (node.getPrim() < 3) {
@@ -90,8 +90,8 @@ void Visualize::publishNode2DPose(Node2D& node) {
   pose.header.frame_id = "path";
   pose.header.stamp = ros::Time::now();
   pose.header.seq = 0;
-  pose.pose.position.x = (node.getX() + 0.5) * Constants::cellSize;
-  pose.pose.position.y = (node.getY() + 0.5) * Constants::cellSize;
+  pose.pose.position.x = (node.getX() + 0.5) * Constants::cellSize + origin_offset_x;
+  pose.pose.position.y = (node.getY() + 0.5) * Constants::cellSize + origin_offset_y;
   pose.pose.orientation = tf::createQuaternionMsgFromYaw(0);
 
   // PUBLISH THE POSE
@@ -104,8 +104,8 @@ void Visualize::publishNode2DPose(Node2D& node) {
 void Visualize::publishNode2DPoses(Node2D& node) {
   if (node.isDiscovered()) {
     geometry_msgs::Pose pose;
-    pose.position.x = (node.getX() + 0.5) * Constants::cellSize;
-    pose.position.y = (node.getY() + 0.5) * Constants::cellSize;
+    pose.position.x = (node.getX() + 0.5) * Constants::cellSize + origin_offset_x;
+    pose.position.y = (node.getY() + 0.5) * Constants::cellSize + origin_offset_y;
     pose.orientation = tf::createQuaternionMsgFromYaw(0);
 
     poses2D.poses.push_back(pose);
@@ -193,8 +193,8 @@ void Visualize::publishNode3DCosts(Node3D* nodes, int width, int height, int dep
       costCube.color.g = green;
       costCube.color.b = blue;
       // center in cell +0.5
-      costCube.pose.position.x = (i % width + 0.5) * Constants::cellSize;
-      costCube.pose.position.y = ((i / width) % height + 0.5) * Constants::cellSize;
+      costCube.pose.position.x = (i % width + 0.5) * Constants::cellSize  + origin_offset_x;
+      costCube.pose.position.y = ((i / width) % height + 0.5) * Constants::cellSize  + origin_offset_y;
       costCubes.markers.push_back(costCube);
     }
   }

@@ -61,7 +61,10 @@ int main(int argc, char** argv) {
   ros::spinOnce();
   ros::Duration(7.0).sleep();
 
-  hy.load_map_yaml("/home/jeeho/catkin_ws/src/hybrid_a_star_KTH/maps/map.yaml");
+  //hy.load_map_yaml("/home/jeeho/catkin_ws/src/hybrid_a_star_KTH/maps/map.yaml");
+  std::string map_file = "";
+  ros::param::get("/hybrid_astar/map_file",map_file);
+  hy.load_map_yaml(map_file);
   //hy.plan(); 
 
   ros::spin();

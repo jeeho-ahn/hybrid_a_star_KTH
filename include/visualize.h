@@ -11,6 +11,10 @@
 
 #include "node3d.h"
 #include "node2d.h"
+
+extern float origin_offset_x, origin_offset_y;
+
+
 namespace HybridAStar {
 class Node3D;
 class Node2D;

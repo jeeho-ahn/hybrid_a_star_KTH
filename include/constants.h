@@ -38,11 +38,11 @@ static const bool visualization = false && manual;
 /// A flag for the visualization of 2D nodes (true = on; false = off)
 static const bool visualization2D = false && manual;
 /// A flag to toggle reversing (true = on; false = off)
-static const bool reverse = false;
+static const bool reverse = true;
 /// A flag to toggle the connection of the path via Dubin's shot (true = on; false = off)
 static const bool dubinsShot = true;
 /// A flag to toggle the Dubin's heuristic, this should be false, if reversing is enabled (true = on; false = off)
-static const bool dubins = true;
+static const bool dubins = false;
 /*!
    \var static const bool dubinsLookup
    \brief A flag to toggle the Dubin's heuristic via lookup, potentially speeding up the search by a lot
@@ -56,7 +56,7 @@ static const bool twoD = true;
 // GENERAL CONSTANTS
 
 /// [#] --- Limits the maximum search depth of the algorithm, possibly terminating without the solution
-static const int iterations = 40000;
+static const int iterations = 50000;
 /// [m] --- Uniformly adds a padding around the vehicle
 static const double bloating = 0;
 /// [m] --- The width of the vehicle
@@ -65,9 +65,9 @@ static const double width = 0.25 + 2 * bloating; // mushr
 static const double length = 0.4 + 2 * bloating;
 /// [m] --- The minimum turning radius of the vehicle // mushr
 //static const float r = 0.8f;
-static const float r = 1.0f;
+static const float r = 2.0f;
 /// [m] --- The number of discretizations in heading
-static const int headings = 72;
+static const int headings = 36; //72
 /// [°] --- The discretization value of the heading (goal condition)
 static const float deltaHeadingDeg = 360 / (float)headings;
 /// [c*M_PI] --- The discretization value of heading (goal condition)
@@ -75,7 +75,7 @@ static const float deltaHeadingRad = 2 * M_PI / (float)headings;
 /// [c*M_PI] --- The heading part of the goal condition
 static const float deltaHeadingNegRad = 2 * M_PI - deltaHeadingRad;
 /// [m] --- The cell size of the 2D grid of the world
-static const float cellSize = 0.1; //mushr
+static const float cellSize = 0.05; //mushr
 
 
 
@@ -102,9 +102,9 @@ static const float penaltyReversing = 2.0;
 static const float penaltyCOD = 2.0;
 /// [m] --- The distance to the goal when the analytical solution (Dubin's shot) first triggers
 //static const float dubinsShotDistance = 100;
-static const float dubinsShotDistance = 5;
+static const float dubinsShotDistance = 10;
 /// [m] --- The step size for the analytical solution (Dubin's shot) primarily relevant for collision checking
-static const float dubinsStepSize = 1;
+static const float dubinsStepSize = 3;
 
 
 // ______________________
@@ -112,7 +112,7 @@ static const float dubinsStepSize = 1;
 
 /// [m] --- The width of the dubinsArea / 2 for the analytical solution (Dubin's shot)
 //static const int dubinsWidth = 15;
-static const int dubinsWidth = 4;
+static const int dubinsWidth = 15;
 /// [m] --- The area of the lookup for the analytical solution (Dubin's shot)
 static const int dubinsArea = dubinsWidth * dubinsWidth;
 
@@ -123,7 +123,7 @@ static const int dubinsArea = dubinsWidth * dubinsWidth;
 /// [m] -- The bounding box size length and width to precompute all possible headings
 static const int bbSize = std::ceil((sqrt(width * width + length* length) + 4) / cellSize);
 /// [#] --- The sqrt of the number of discrete positions per cell
-static const int positionResolution = 1;
+static const int positionResolution = 2;
 /// [#] --- The number of discrete positions per cell
 static const int positions = positionResolution * positionResolution;
 /// A structure describing the relative position of the occupied cell based on the center of the vehicle
